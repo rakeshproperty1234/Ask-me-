@@ -498,21 +498,25 @@
         }
 
  <script>
+
+// ✅ FIX DOM issue (MOST IMPORTANT)
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof DOM !== "undefined") {
+        DOM.themeIcon = document.getElementById("theme-icon");
+    }
+});
+
+// ✅ SAFE APPLY THEME
 function applyTheme() {
     try {
         const html = document.documentElement;
 
-        // 🔹 safety checks
         if (typeof config === "undefined") return;
 
         const isDark = config.theme === "dark";
-
-        // 🔹 toggle class
         html.classList.toggle("dark", isDark);
 
-        // 🔹 safe icon update
         const icon = document.getElementById("theme-icon");
-
         if (icon) {
             icon.innerHTML = isDark
                 ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -522,6 +526,48 @@ function applyTheme() {
         }
 
     } catch (e) {
-        console.warn("applyTheme error:", e);
+        console.warn("Theme error:", e);
     }
+}
+
+// ✅ SAFE INIT
+function init() {
+    console.log("🚀 App Starting...");
+
+    try {
+        if (typeof loadConfig === "function") loadConfig();
+        if (typeof loadChats === "function") loadChats();
+        if (typeof applyTheme === "function") applyTheme();
+
+        if (typeof chats !== "undefined" && Array.isArray(chats)) {
+            if (chats.length === 0 && typeof createNewChat === "function") {
+                createNewChat();
+            } else if (chats.length > 0 && typeof switchChat === "function") {
+                switchChat(chats[0].id);
+            }
         }
+
+    } catch (e) {
+        console.error("❌ Init error:", e);
+    }
+
+    // 🔥 FORCE REMOVE LOADER
+    const loader = document.getElementById("loading");
+    if (loader) {
+        loader.style.opacity = "0";
+        setTimeout(() => loader.remove(), 300);
+    }
+
+    console.log("✅ App Loaded");
+}
+
+// ✅ AUTO RUN
+document.addEventListener("DOMContentLoaded", init);
+
+// 🔥 FINAL BACKUP (even if everything fails)
+window.onload = function () {
+    const loader = document.getElementById("loading");
+    if (loader) loader.style.display = "none";
+};
+
+</script>
